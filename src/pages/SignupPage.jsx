@@ -117,6 +117,27 @@ export default function SignupPage({ onSignup }) {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              backgroundColor: '#ef8a23',
-              color: 'white',
+style={{
+  backgroundColor: '#ef8a23',
+  color: 'white',
+  padding: '12px 16px',
+  borderRadius: '8px',
+  border: 'none',
+  fontWeight: '600',
+  cursor: 'pointer',
+  marginTop: '16px',
+  opacity: loading ? 0.7 : 1
+}}
+>{loading ? 'Criando conta...' : 'Criar conta'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <p style={{ color: '#666', fontSize: '14px' }}>
+            Já tem conta? <Link to="/login" style={{ color: '#ef8a23', fontWeight: '500', textDecoration: 'none' }}>Faça login</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
