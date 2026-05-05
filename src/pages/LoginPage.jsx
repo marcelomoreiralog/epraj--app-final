@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock } from 'lucide-react'
+import { authService } from '../supabase'
 
-export default function LoginPage() {
+export default function LoginPage({ onLogin }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -14,13 +15,13 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    if (email && password) {
-      setTimeout(() => {
-        setLoading(false)
-        navigate('/')
-      }, 1000)
-    } else {
-      setError('Preencha todos os campos')
+    try {
+      const { session } = await authService.login(email, password)
+      onLogin(session.user)
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Erro ao fazer login')
+    } finally {
       setLoading(false)
     }
   }

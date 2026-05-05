@@ -1,18 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
+import { authService } from './supabase'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import SearchPage from './pages/SearchPage'
 
-function Header() {
-  const [user, setUser] = useState(null)
+function Header({ user, onLogout }) {
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    setUser(null)
-    navigate('/')
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+      onLogout()
+      navigate('/')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error.message)
+    }
   }
 
   return (
@@ -30,7 +35,7 @@ function Header() {
             <>
               <Link to="/" style={{ color: '#666', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
               <Link to="/search" style={{ color: '#666', textDecoration: 'none', fontWeight: '500' }}>Buscar</Link>
-              <span style={{ color: '#666' }}>Olá, {user.name}</span>
+              <span style={{ color: '#666' }}>Olá, {user.name || user.email}</span>
               <button onClick={handleLogout} style={{ backgroundColor: '#ef8a23', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <LogOut size={16} />
                 Sair
@@ -51,13 +56,37 @@ function Header() {
 }
 
 export default function App() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    checkUser()
+  }, [])
+
+  const checkUser = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser()
+      if (currentUser) {
+        setUser(currentUser)
+      }
+    } catch (error) {
+      console.error('Erro ao verificar usuário:', error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Carregando...</div>
+  }
+
   return (
     <BrowserRouter>
-      <Header />
+      <Header user={user} onLogout={() => setUser(null)} />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/login" element={<LoginPage onLogin={(user) => setUser(user)} />} />
+        <Route path="/signup" element={<SignupPage onSignup={(user) => setUser(user)} />} />
         <Route path="/search" element={<SearchPage />} />
       </Routes>
     </BrowserRouter>

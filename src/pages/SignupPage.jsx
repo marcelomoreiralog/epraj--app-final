@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { authService } from '../supabase'
 
-export default function SignupPage() {
+export default function SignupPage({ onSignup }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
@@ -43,10 +44,21 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const result = await authService.signup(formData.email, formData.password, {
+        name: formData.name,
+        phone: formData.phone,
+        cep: formData.cep,
+        address: formData.address
+      })
+      
+      onSignup(result.user)
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Erro ao criar conta')
+    } finally {
       setLoading(false)
-      navigate('/login')
-    }, 1000)
+    }
   }
 
   return (
@@ -108,25 +120,3 @@ export default function SignupPage() {
             style={{
               backgroundColor: '#ef8a23',
               color: 'white',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              border: 'none',
-              fontWeight: '600',
-              cursor: 'pointer',
-              marginTop: '16px',
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'Criando conta...' : 'Criar conta'}
-          </button>
-        </form>
-
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <p style={{ color: '#666', fontSize: '14px' }}>
-            Já tem conta? <Link to="/login" style={{ color: '#ef8a23', fontWeight: '500', textDecoration: 'none' }}>Faça login</Link>
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
